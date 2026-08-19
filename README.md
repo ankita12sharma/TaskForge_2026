@@ -126,18 +126,37 @@ TaskForge/
 ├── .gitignore
 └── README.md
 ```
+
 ## Screenshots
-Google Login
 
+### Google UI
 
-Guest Login
+![Google UI](TaskForge_Images/LoginUI.png)
 
-Workspace
+### Google Login
 
-Projects
+![Google Login](TaskForge_Images/GoogleLogin.png)
 
-Task Management
+### Guest Login
 
-Subtasks
+![Guest Login](TaskForge_Images/GuestLogin.png)
 
-Profile & Themes
+### Workspace
+
+![Workspace](TaskForge_Images/Workspace.png)
+
+### Projects
+
+![Projects](TaskForge_Images/FetchProjectsByFilter.png)
+
+### Task Management
+
+![Task Management](TaskForge_Images/FetchTasksByList.png)
+
+### Subtasks
+
+![Subtasks](TaskForge_Images/AddSubTask.png)
+
+### Profile
+
+![Profile](TaskForge_Images/GuestProfile.png)
