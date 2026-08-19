@@ -17,8 +17,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB successfully!!"))
   .catch((err) => console.log(`Error in connecting to MongoDB!!`));
 
-const PORT = 8666;
-
+const PORT = process.env.PORT || 8666;
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -29,6 +28,6 @@ app.use("/", TaskRouter);
 app.use("/", SubTaskRouter);
 app.use("/", commentsRouter);
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening to server on port ${PORT}`);
 });
