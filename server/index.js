@@ -28,6 +28,6 @@ app.use("/", TaskRouter);
 app.use("/", SubTaskRouter);
 app.use("/", commentsRouter);
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Listening to server on port ${PORT}`);
 });
