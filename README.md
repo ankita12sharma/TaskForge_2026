@@ -126,3 +126,18 @@ TaskForge/
 ├── .gitignore
 └── README.md
 ```
+## Screenshots
+Google Login
+
+
+Guest Login
+
+Workspace
+
+Projects
+
+Task Management
+
+Subtasks
+
+Profile & Themes
