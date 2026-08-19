@@ -415,8 +415,6 @@ const deleteWorkspace = async (req, res) => {
       data: deletedWorkspace,
     });
   } catch (err) {
-    console.error("Delete workspace error:", err);
-
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
