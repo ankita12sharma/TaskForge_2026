@@ -141,9 +141,6 @@ TaskForge/
 
 ![Guest Login](TaskForge_Images/GuestLogin.png)
 
-### Workspace
-
-![Workspace](TaskForge_Images/Workspace.png)
 
 ### Projects
 

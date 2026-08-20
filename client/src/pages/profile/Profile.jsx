@@ -240,25 +240,21 @@ const Profile = () => {
   };
 
   const saveField = async () => {
-    if (!userId) {
-      toast.error("User ID not found!!");
+    if (!userId || !editingField) {
       return;
     }
+
+    const updateData = {
+      [editingField]: formData[editingField],
+    };
 
     try {
       const response = await updateUser({
         id: userId,
-        email: formData.email,
-        name: formData.name,
-        title: formData.title,
-        username: formData.username,
-        avatar: formData.avatar,
+        ...updateData,
       }).unwrap();
 
-      const updatedUser = response?.data || {
-        ...currentUser,
-        ...formData,
-      };
+      const updatedUser = response?.data;
 
       setCurrentUser(updatedUser);
 
@@ -267,9 +263,11 @@ const Profile = () => {
         JSON.stringify({
           ...(storedUser || {}),
           ...updatedUser,
-          id: updatedUser._id || updatedUser.id || userId,
+          id: updatedUser?._id || userId,
         }),
       );
+
+      localStorage.setItem("userId", String(updatedUser?._id || userId));
 
       setEditingField(null);
 
@@ -278,7 +276,6 @@ const Profile = () => {
       toast.error("Failed to update profile!!");
     }
   };
-
   const handleFieldBlur = async () => {
     if (editingField) {
       await saveField();

@@ -6,7 +6,7 @@ const signupSchema = Joi.object({
   email: Joi.string().email().required(),
 
   password: Joi.string()
-    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%\*?&]).{8,}$/)
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/)
     .required(),
 });
 
