@@ -452,10 +452,13 @@ const Profile = () => {
   const avatarSource = formData.avatar || "";
 
   const avatarUrl =
-    avatarSource && avatarSource.startsWith("http")
+    avatarSource &&
+    (avatarSource.startsWith("http://") ||
+      avatarSource.startsWith("https://") ||
+      avatarSource.startsWith("data:"))
       ? avatarSource
       : avatarSource
-        ? `http://localhost:8666/${avatarSource.replace(/^\//, "")}`
+        ? `https://taskforge-2026.onrender.com/${avatarSource.replace(/^\//, "")}`
         : "";
 
   const avatarLetter = formData.name?.charAt(0)?.toUpperCase() || "A";

@@ -73,9 +73,9 @@ const Sidebar = () => {
     ) {
       userAvatar = avatar;
     } else if (avatar.startsWith("/")) {
-      userAvatar = `http://localhost:8666${avatar}`;
+      userAvatar = `https://taskforge-2026.onrender.com${avatar}`;
     } else {
-      userAvatar = `http://localhost:8666/${avatar}`;
+      userAvatar = `https://taskforge-2026.onrender.com/${avatar}`;
     }
   }
 

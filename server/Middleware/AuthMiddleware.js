@@ -12,7 +12,6 @@ const signupSchema = Joi.object({
 
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
-
   password: Joi.string().required(),
 });
 
@@ -22,7 +21,7 @@ const updateProfileSchema = Joi.object({
   email: Joi.string().email(),
 
   password: Joi.string().pattern(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%\*?&]).{8,}$/,
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
   ),
 
   username: Joi.string(),
@@ -45,6 +44,15 @@ const updateProfileSchema = Joi.object({
 
 const updateThemeSchema = Joi.object({
   theme: Joi.string().valid("light", "dark").required(),
+
+  color: Joi.string().valid(
+    "Amber",
+    "Blue",
+    "Pink",
+    "Rose",
+    "Emerald",
+    "Black",
+  ),
 });
 
 const signupValidation = (req, res, next) => {
@@ -77,9 +85,12 @@ const updateProfileValidation = (req, res, next) => {
   const { error } = updateProfileSchema.validate(req.body);
 
   if (error) {
+    console.log("UPDATE PROFILE VALIDATION ERROR:", error.details);
+    console.log("UPDATE PROFILE BODY:", req.body);
+
     return res.status(400).json({
       responseCode: "400",
-      responseMessage: "Invalid profile details!!",
+      responseMessage: error.details[0].message,
     });
   }
 

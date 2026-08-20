@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const userSlice = createApi({
   reducerPath: "userSlice",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:8666",
+    baseUrl: "https://taskforge-2026.onrender.com",
   }),
   tagTypes: ["Users"],
   endpoints: (builder) => ({

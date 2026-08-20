@@ -438,10 +438,10 @@ const Tasks = () => {
     }
 
     if (avatar.startsWith("/")) {
-      return `http://localhost:8666${avatar}`;
+      return `https://taskforge-2026.onrender.com${avatar}`;
     }
 
-    return `http://localhost:8666/${avatar}`;
+    return `https://taskforge-2026.onrender.com/${avatar}`;
   };
 
   const Avatar = ({ member, size = "26px" }) => {

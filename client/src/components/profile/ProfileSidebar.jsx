@@ -429,7 +429,7 @@ const ProfileSidebar = ({
                 src={
                   user.avatar.startsWith("http")
                     ? user.avatar
-                    : `http://localhost:8666/${user.avatar.replace(/^\//, "")}`
+                    : `https://taskforge-2026.onrender.com/${user.avatar.replace(/^\//, "")}`
                 }
                 alt=""
                 className="h-full w-full object-cover"

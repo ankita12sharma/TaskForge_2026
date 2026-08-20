@@ -4,7 +4,7 @@ export const subtaskSlice = createApi({
   reducerPath: "subtaskSlice",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:8666",
+    baseUrl: "https://taskforge-2026.onrender.com",
   }),
 
   tagTypes: ["Subtasks"],
