@@ -2,13 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { RiPencilLine } from "@remixicon/react";
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
-
 import {
   useGetUsersQuery,
   useUpdateUserMutation,
   useUpdateThemeMutation,
 } from "../../redux/slices/userSlice";
-
 import {
   useGetWorkspacesQuery,
   useLeaveWorkspaceMutation,
@@ -91,7 +89,9 @@ const Profile = () => {
   const accentColor = COLOR_OPTIONS[color] || COLOR_OPTIONS.Blue;
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
     let users = [];
 
@@ -113,7 +113,9 @@ const Profile = () => {
       foundUser = storedUser?.data || storedUser;
     }
 
-    if (!foundUser) return;
+    if (!foundUser) {
+      return;
+    }
 
     setCurrentUser(foundUser);
 
@@ -155,7 +157,9 @@ const Profile = () => {
     let foundWorkspace = null;
 
     for (const workspace of workspaces) {
-      if (!workspace) continue;
+      if (!workspace) {
+        continue;
+      }
 
       const workspaceId =
         workspace?._id || workspace?.id || workspace?.workspaceId;
@@ -184,7 +188,7 @@ const Profile = () => {
             memberId = member;
           }
 
-          return memberId ? String(memberId).trim() === loggedInUserId : false;
+          return memberId && String(memberId).trim() === loggedInUserId;
         });
       }
 
@@ -218,7 +222,9 @@ const Profile = () => {
   };
 
   const saveField = async () => {
-    if (!userId || !editingField) return;
+    if (!userId || !editingField) {
+      return;
+    }
 
     const fieldValue = formData[editingField];
 
@@ -302,6 +308,7 @@ const Profile = () => {
       const message =
         err?.data?.responseMessage ||
         err?.data?.message ||
+        err?.error ||
         "Failed to update profile!!";
 
       toast.error(message);
@@ -329,7 +336,9 @@ const Profile = () => {
   };
 
   const handleThemeChange = async (newTheme) => {
-    if (!userId || newTheme === theme) return;
+    if (!userId || newTheme === theme) {
+      return;
+    }
 
     try {
       const response = await updateTheme({
@@ -345,7 +354,9 @@ const Profile = () => {
       };
 
       setTheme(updatedUser.theme || newTheme);
+
       setColor(updatedUser.color || color);
+
       setCurrentUser(updatedUser);
 
       localStorage.setItem(
@@ -366,7 +377,9 @@ const Profile = () => {
   };
 
   const handleColorChange = async (newColor) => {
-    if (!userId || newColor === color) return;
+    if (!userId || newColor === color) {
+      return;
+    }
 
     try {
       const response = await updateTheme({
@@ -382,7 +395,9 @@ const Profile = () => {
       };
 
       setTheme(updatedUser.theme || theme);
+
       setColor(updatedUser.color || newColor);
+
       setCurrentUser(updatedUser);
 
       localStorage.setItem(
@@ -429,7 +444,9 @@ const Profile = () => {
       return;
     }
 
-    if (isLeavingWorkspace) return;
+    if (isLeavingWorkspace) {
+      return;
+    }
 
     try {
       await leaveWorkspace({
@@ -484,7 +501,10 @@ const Profile = () => {
     avatarSource.startsWith("data:")
       ? avatarSource
       : avatarSource
-        ? `https://taskforge-2026.onrender.com/${avatarSource.replace(/^\/+/, "")}`
+        ? `https://taskforge-2026.onrender.com/${avatarSource.replace(
+            /^\/+/,
+            "",
+          )}`
         : "";
 
   const avatarLetter = formData.name?.charAt(0)?.toUpperCase() || "A";
