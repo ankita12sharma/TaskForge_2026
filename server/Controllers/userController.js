@@ -50,6 +50,8 @@ const signupUser = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("SIGNUP ERROR:", err);
+
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
@@ -121,6 +123,8 @@ const loginUser = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
+
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
@@ -229,6 +233,7 @@ const googleLogin = async (req, res) => {
     });
   }
 };
+
 const getUsers = async (req, res) => {
   try {
     const users = await UserModel.find({}).select("-password");
@@ -239,6 +244,8 @@ const getUsers = async (req, res) => {
       data: users,
     });
   } catch (err) {
+    console.error("GET USERS ERROR:", err);
+
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
@@ -256,85 +263,90 @@ const updateUser = async (req, res) => {
     console.log("UPDATE USER ID:", id);
     console.log("UPDATE USER BODY:", req.body);
 
-    const updateUserData = {};
+    const user = await UserModel.findById(id);
 
-    if (name !== undefined) {
-      updateUserData.name = name;
-    }
-
-    if (email !== undefined) {
-      updateUserData.email = email;
-    }
-
-    if (username !== undefined) {
-      updateUserData.username = username;
-    }
-
-    if (title !== undefined) {
-      updateUserData.title = title;
-    }
-
-    if (password !== undefined) {
-      updateUserData.password = await bcrypt.hash(password, 10);
-    }
-
-    if (avatar !== undefined) {
-      updateUserData.avatar = avatar;
-    }
-
-    if (theme !== undefined) {
-      updateUserData.theme = theme;
-    }
-
-    if (color !== undefined) {
-      updateUserData.color = color;
-    }
-
-    if (Object.keys(updateUserData).length === 0) {
-      return res.status(400).json({
-        responseCode: "400",
-        responseMessage: "No profile data provided!!",
-      });
-    }
-
-    const updatedData = await UserModel.findByIdAndUpdate(
-      id,
-      {
-        $set: updateUserData,
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).select("-password");
-
-    if (!updatedData) {
+    if (!user) {
       return res.status(404).json({
         responseCode: "404",
         responseMessage: "User not found!!",
       });
     }
 
-    console.log("UPDATED USER:", updatedData);
+    if (name !== undefined && name !== "") {
+      user.name = name;
+    }
+
+    if (email !== undefined && email !== "") {
+      user.email = email;
+    }
+
+    if (username !== undefined && username.trim() !== "") {
+      user.username = username.trim();
+    }
+
+    if (title !== undefined) {
+      user.title = title;
+    }
+
+    if (password !== undefined && password !== "") {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    if (avatar !== undefined) {
+      user.avatar = avatar;
+    }
+
+    if (theme !== undefined) {
+      user.theme = theme;
+    }
+
+    if (color !== undefined) {
+      user.color = color;
+    }
+
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    console.log("USER UPDATED SUCCESSFULLY:", updatedUser);
 
     return res.status(200).json({
       responseCode: "200",
       responseMessage: "User updated successfully!!",
-      data: updatedData,
+      data: updatedUser,
     });
   } catch (err) {
     console.error("UPDATE USER ERROR:", err);
+    console.error("ERROR MESSAGE:", err.message);
+
+    if (err.code === 11000) {
+      return res.status(409).json({
+        responseCode: "409",
+        responseMessage:
+          "Username or email already exists. Please use another one.",
+      });
+    }
+
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        responseCode: "400",
+        responseMessage: Object.values(err.errors)
+          .map((error) => error.message)
+          .join(", "),
+      });
+    }
 
     return res.status(500).json({
       responseCode: "500",
-      responseMessage: err.message || "Server Error!!",
+      responseMessage: "Server Error!!",
     });
   }
 };
 
 const updateTheme = async (req, res) => {
   try {
-    const { theme } = req.body;
+    const { theme, color } = req.body;
     const { id } = req.params;
 
     if (!theme) {
@@ -344,15 +356,21 @@ const updateTheme = async (req, res) => {
       });
     }
 
+    const updateData = {
+      theme,
+    };
+
+    if (color !== undefined) {
+      updateData.color = color;
+    }
+
     const updatedTheme = await UserModel.findByIdAndUpdate(
       id,
       {
-        $set: {
-          theme: theme,
-        },
+        $set: updateData,
       },
       {
-        returnDocument: "after",
+        new: true,
         runValidators: true,
       },
     ).select("-password");
@@ -370,6 +388,8 @@ const updateTheme = async (req, res) => {
       data: updatedTheme,
     });
   } catch (err) {
+    console.error("UPDATE THEME ERROR:", err);
+
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
@@ -385,10 +405,12 @@ const guestLogin = async (req, res) => {
 
     const guestName = "Guest User";
 
+    const guestPassword = Math.random().toString(36) + Date.now();
+
     const guestUser = new UserModel({
       name: guestName,
       email: guestEmail,
-      password: await bcrypt.hash(Math.random().toString(36) + Date.now(), 10),
+      password: await bcrypt.hash(guestPassword, 10),
       authProvider: "guest",
     });
 
@@ -429,6 +451,7 @@ const guestLogin = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   signupUser,
   loginUser,
