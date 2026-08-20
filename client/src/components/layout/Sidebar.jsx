@@ -13,7 +13,7 @@ import {
   RiSettings3Line,
 } from "@remixicon/react";
 
-import { useGetWorkspacesQuery } from "../../redux/slices/workSpaceSlice";
+import { useGetWorkspacesQuery } from "../../redux/slices/workspaceSlice";
 import { useUpdateUserMutation } from "../../redux/slices/userSlice";
 
 const Sidebar = () => {

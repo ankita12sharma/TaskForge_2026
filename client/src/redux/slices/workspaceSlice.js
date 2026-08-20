@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const workspaceSlice = createApi({
-  reducerPath: "workSpaceSlice",
+  reducerPath: "workspaceSlice",
 
   baseQuery: fetchBaseQuery({
     baseUrl: "https://taskforge-2026.onrender.com",

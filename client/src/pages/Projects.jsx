@@ -33,7 +33,7 @@ import {
 
 import { useGetUsersQuery } from "../redux/slices/userSlice";
 import { useGetTasksQuery } from "../redux/slices/taskSlice";
-import { useGetWorkspacesQuery } from "../redux/slices/workSpaceSlice";
+import { useGetWorkspacesQuery } from "../redux/slices/workspaceSlice";
 
 const COLORS = {
   urgent: "#E53935",
