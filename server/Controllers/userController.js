@@ -253,6 +253,9 @@ const updateUser = async (req, res) => {
 
     const { id } = req.params;
 
+    console.log("UPDATE USER ID:", id);
+    console.log("UPDATE USER BODY:", req.body);
+
     const updateUserData = {};
 
     if (name !== undefined) {
@@ -287,13 +290,20 @@ const updateUser = async (req, res) => {
       updateUserData.color = color;
     }
 
+    if (Object.keys(updateUserData).length === 0) {
+      return res.status(400).json({
+        responseCode: "400",
+        responseMessage: "No profile data provided!!",
+      });
+    }
+
     const updatedData = await UserModel.findByIdAndUpdate(
       id,
       {
         $set: updateUserData,
       },
       {
-        returnDocument: "after",
+        new: true,
         runValidators: true,
       },
     ).select("-password");
@@ -305,15 +315,19 @@ const updateUser = async (req, res) => {
       });
     }
 
+    console.log("UPDATED USER:", updatedData);
+
     return res.status(200).json({
       responseCode: "200",
       responseMessage: "User updated successfully!!",
       data: updatedData,
     });
   } catch (err) {
+    console.error("UPDATE USER ERROR:", err);
+
     return res.status(500).json({
       responseCode: "500",
-      responseMessage: "Server Error!!",
+      responseMessage: err.message || "Server Error!!",
     });
   }
 };
