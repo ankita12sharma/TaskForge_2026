@@ -24,11 +24,11 @@ const updateProfileSchema = Joi.object({
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
   ),
 
-  username: Joi.string(),
+  username: Joi.string().allow(""),
 
-  title: Joi.string(),
+  title: Joi.string().allow(""),
 
-  avatar: Joi.string(),
+  avatar: Joi.string().allow(""),
 
   theme: Joi.string().valid("light", "dark"),
 
