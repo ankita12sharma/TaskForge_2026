@@ -252,7 +252,6 @@ const getUsers = async (req, res) => {
     });
   }
 };
-
 const updateUser = async (req, res) => {
   try {
     const { name, email, username, title, password, avatar, theme, color } =
@@ -263,6 +262,13 @@ const updateUser = async (req, res) => {
     console.log("UPDATE USER ID:", id);
     console.log("UPDATE USER BODY:", req.body);
 
+    if (!id) {
+      return res.status(400).json({
+        responseCode: "400",
+        responseMessage: "User ID is required!!",
+      });
+    }
+
     const user = await UserModel.findById(id);
 
     if (!user) {
@@ -272,16 +278,16 @@ const updateUser = async (req, res) => {
       });
     }
 
-    if (name !== undefined && name !== "") {
+    if (name !== undefined) {
       user.name = name;
     }
 
-    if (email !== undefined && email !== "") {
+    if (email !== undefined) {
       user.email = email;
     }
 
-    if (username !== undefined && username.trim() !== "") {
-      user.username = username.trim();
+    if (username !== undefined) {
+      user.username = username;
     }
 
     if (title !== undefined) {
@@ -318,7 +324,13 @@ const updateUser = async (req, res) => {
     });
   } catch (err) {
     console.error("UPDATE USER ERROR:", err);
-    console.error("ERROR MESSAGE:", err.message);
+
+    if (err.name === "CastError") {
+      return res.status(400).json({
+        responseCode: "400",
+        responseMessage: "Invalid user ID!!",
+      });
+    }
 
     if (err.code === 11000) {
       return res.status(409).json({
@@ -343,7 +355,6 @@ const updateUser = async (req, res) => {
     });
   }
 };
-
 const updateTheme = async (req, res) => {
   try {
     const { theme, color } = req.body;

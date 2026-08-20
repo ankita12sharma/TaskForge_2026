@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { RiPencilLine } from "@remixicon/react";
-
 import ProfileSidebar from "../../components/profile/ProfileSidebar";
 
 import {
@@ -51,17 +50,14 @@ const Profile = () => {
 
   const [theme, setTheme] = useState("light");
   const [color, setColor] = useState("Blue");
-
   const [editingField, setEditingField] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
 
   const storedUser = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem("user") || "null");
-    } catch (err) {
-      console.error("Invalid stored user:", err);
+    } catch {
       return null;
     }
   }, []);
@@ -95,10 +91,7 @@ const Profile = () => {
   const accentColor = COLOR_OPTIONS[color] || COLOR_OPTIONS.Blue;
 
   useEffect(() => {
-    if (!userId) {
-      console.log("PROFILE: No logged-in user ID");
-      return;
-    }
+    if (!userId) return;
 
     let users = [];
 
@@ -120,13 +113,7 @@ const Profile = () => {
       foundUser = storedUser?.data || storedUser;
     }
 
-    if (!foundUser) {
-      console.log("PROFILE: User not found");
-      return;
-    }
-
-    console.log("PROFILE CURRENT USER:", foundUser);
-    console.log("PROFILE IS GUEST:", isGuestUser);
+    if (!foundUser) return;
 
     setCurrentUser(foundUser);
 
@@ -140,15 +127,10 @@ const Profile = () => {
 
     setTheme(foundUser.theme || "light");
     setColor(foundUser.color || "Blue");
-  }, [data, userId, storedUser, isGuestUser]);
+  }, [data, userId, storedUser]);
 
   useEffect(() => {
-    if (isGuestUser) {
-      setCurrentWorkspace(null);
-      return;
-    }
-
-    if (!userId) {
+    if (isGuestUser || !userId) {
       setCurrentWorkspace(null);
       return;
     }
@@ -202,9 +184,7 @@ const Profile = () => {
             memberId = member;
           }
 
-          if (!memberId) return false;
-
-          return String(memberId).trim() === loggedInUserId;
+          return memberId ? String(memberId).trim() === loggedInUserId : false;
         });
       }
 
@@ -220,8 +200,6 @@ const Profile = () => {
         break;
       }
     }
-
-    console.log("CURRENT WORKSPACE:", foundWorkspace);
 
     setCurrentWorkspace(foundWorkspace);
   }, [workspaceData, userId, isGuestUser]);
@@ -240,42 +218,96 @@ const Profile = () => {
   };
 
   const saveField = async () => {
-    if (!userId || !editingField) {
+    if (!userId || !editingField) return;
+
+    const fieldValue = formData[editingField];
+
+    if (fieldValue === undefined || fieldValue === null) {
+      setEditingField(null);
+      return;
+    }
+
+    const trimmedValue =
+      typeof fieldValue === "string" ? fieldValue.trim() : fieldValue;
+
+    if (editingField === "name" && trimmedValue.length < 3) {
+      toast.error("Name must contain at least 3 characters.");
+      return;
+    }
+
+    if (editingField === "email") {
+      if (!trimmedValue) {
+        toast.error("Email cannot be empty.");
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(trimmedValue)) {
+        toast.error("Please enter a valid email.");
+        return;
+      }
+    }
+
+    if (editingField === "username" && !trimmedValue) {
+      setEditingField(null);
       return;
     }
 
     const updateData = {
-      [editingField]: formData[editingField],
+      [editingField]: trimmedValue,
     };
 
     try {
       const response = await updateUser({
-        id: userId,
+        id: String(userId),
         ...updateData,
       }).unwrap();
 
       const updatedUser = response?.data;
 
+      if (!updatedUser) {
+        throw new Error("Invalid update response");
+      }
+
       setCurrentUser(updatedUser);
 
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          ...(storedUser || {}),
-          ...updatedUser,
-          id: updatedUser?._id || userId,
-        }),
-      );
+      setFormData({
+        email: updatedUser.email || "",
+        name: updatedUser.name || "",
+        title: updatedUser.title || "",
+        username: updatedUser.username || "",
+        avatar: updatedUser.avatar || "",
+      });
 
-      localStorage.setItem("userId", String(updatedUser?._id || userId));
+      const latestStoredUser = {
+        ...(storedUser || {}),
+        ...updatedUser,
+        id: updatedUser._id || updatedUser.id || userId,
+      };
+
+      localStorage.setItem("user", JSON.stringify(latestStoredUser));
+
+      localStorage.setItem(
+        "userId",
+        String(updatedUser._id || updatedUser.id || userId),
+      );
 
       setEditingField(null);
 
       toast.success("Profile updated successfully!!");
     } catch (err) {
-      toast.error("Failed to update profile!!");
+      console.error("PROFILE UPDATE ERROR:", err);
+
+      const message =
+        err?.data?.responseMessage ||
+        err?.data?.message ||
+        "Failed to update profile!!";
+
+      toast.error(message);
     }
   };
+
   const handleFieldBlur = async () => {
     if (editingField) {
       await saveField();
@@ -297,19 +329,17 @@ const Profile = () => {
   };
 
   const handleThemeChange = async (newTheme) => {
-    if (!userId || newTheme === theme) {
-      return;
-    }
+    if (!userId || newTheme === theme) return;
 
     try {
       const response = await updateTheme({
-        id: userId,
+        id: String(userId),
         theme: newTheme,
         color,
       }).unwrap();
 
       const updatedUser = response?.data || {
-        ...currentUser,
+        ...(currentUser || {}),
         theme: newTheme,
         color,
       };
@@ -329,24 +359,24 @@ const Profile = () => {
 
       toast.success("Theme updated successfully!!");
     } catch (err) {
-      toast.error("Failed to update theme!!");
+      console.error("THEME UPDATE ERROR:", err);
+
+      toast.error(err?.data?.responseMessage || "Failed to update theme!!");
     }
   };
 
   const handleColorChange = async (newColor) => {
-    if (!userId || newColor === color) {
-      return;
-    }
+    if (!userId || newColor === color) return;
 
     try {
       const response = await updateTheme({
-        id: userId,
+        id: String(userId),
         theme,
         color: newColor,
       }).unwrap();
 
       const updatedUser = response?.data || {
-        ...currentUser,
+        ...(currentUser || {}),
         theme,
         color: newColor,
       };
@@ -366,14 +396,15 @@ const Profile = () => {
 
       toast.success("Color updated successfully!!");
     } catch (err) {
-      toast.error("Failed to update color!!");
+      console.error("COLOR UPDATE ERROR:", err);
+
+      toast.error(err?.data?.responseMessage || "Failed to update color!!");
     }
   };
 
   const handleLeaveWorkspace = async () => {
     if (isGuestUser) {
       toast.success("You left the workspace successfully!!");
-
       return;
     }
 
@@ -398,12 +429,10 @@ const Profile = () => {
       return;
     }
 
-    if (isLeavingWorkspace) {
-      return;
-    }
+    if (isLeavingWorkspace) return;
 
     try {
-      const response = await leaveWorkspace({
+      await leaveWorkspace({
         workspaceId: String(workspaceId),
         userId: String(userId),
       }).unwrap();
@@ -421,15 +450,13 @@ const Profile = () => {
 
           localStorage.setItem("user", JSON.stringify(latestUser));
         }
-      } catch (storageError) {
-        console.error("Storage error:", storageError);
-      }
+      } catch {}
 
       refetchWorkspaces();
     } catch (err) {
       console.error("LEAVE WORKSPACE ERROR:", err);
 
-      toast.error("Failed to leave workspace!!");
+      toast.error(err?.data?.responseMessage || "Failed to leave workspace!!");
     }
   };
 
@@ -452,13 +479,12 @@ const Profile = () => {
   const avatarSource = formData.avatar || "";
 
   const avatarUrl =
-    avatarSource &&
-    (avatarSource.startsWith("http://") ||
-      avatarSource.startsWith("https://") ||
-      avatarSource.startsWith("data:"))
+    avatarSource.startsWith("http://") ||
+    avatarSource.startsWith("https://") ||
+    avatarSource.startsWith("data:")
       ? avatarSource
       : avatarSource
-        ? `https://taskforge-2026.onrender.com/${avatarSource.replace(/^\//, "")}`
+        ? `https://taskforge-2026.onrender.com/${avatarSource.replace(/^\/+/, "")}`
         : "";
 
   const avatarLetter = formData.name?.charAt(0)?.toUpperCase() || "A";
@@ -484,37 +510,11 @@ const Profile = () => {
         isUpdatingTheme={isUpdatingTheme}
       />
 
-      <main
-        className="
-          min-h-screen
-          w-full
-          pt-[52px]
-          md:ml-[256px]
-          md:pt-0
-        "
-      >
-        <div
-          className="
-            flex
-            min-h-screen
-            w-full
-            justify-center
-            px-4
-            py-10
-            sm:px-6
-            md:px-[60px]
-            md:py-[108px]
-            lg:px-[80px]
-          "
-        >
+      <main className="min-h-screen w-full pt-[52px] md:ml-[256px] md:pt-0">
+        <div className="flex min-h-screen w-full justify-center px-4 py-10 sm:px-6 md:px-[60px] md:py-[108px] lg:px-[80px]">
           <div className="w-full max-w-[543px] md:ml-[-128px]">
             <h1
-              className="
-                ml-[20px]
-                text-[20px]
-                font-medium
-                leading-[28px]
-              "
+              className="ml-[20px] text-[20px] font-medium leading-[28px]"
               style={{
                 color: colors.text,
               }}
@@ -523,27 +523,14 @@ const Profile = () => {
             </h1>
 
             <div
-              className="
-                mt-[28px]
-                w-full
-                overflow-hidden
-                rounded-[8px]
-                border
-              "
+              className="mt-[28px] w-full overflow-hidden rounded-[8px] border"
               style={{
                 backgroundColor: colors.card,
                 borderColor: colors.border,
               }}
             >
               <div
-                className="
-                  flex
-                  h-[54px]
-                  items-center
-                  justify-between
-                  border-b
-                  px-5
-                "
+                className="flex h-[54px] items-center justify-between border-b px-5"
                 style={{
                   borderColor: colors.border,
                 }}
@@ -558,19 +545,7 @@ const Profile = () => {
                 </span>
 
                 <div
-                  className="
-                    flex
-                    h-7
-                    w-7
-                    shrink-0
-                    items-center
-                    justify-center
-                    overflow-hidden
-                    rounded-full
-                    text-[10px]
-                    font-medium
-                    text-white
-                  "
+                  className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-[10px] font-medium text-white"
                   style={{
                     backgroundColor: accentColor,
                   }}
@@ -580,6 +555,9 @@ const Profile = () => {
                       src={avatarUrl}
                       alt="Profile"
                       className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   ) : (
                     avatarLetter
@@ -588,14 +566,7 @@ const Profile = () => {
               </div>
 
               <div
-                className="
-                  flex
-                  h-[65px]
-                  items-center
-                  justify-between
-                  border-b
-                  px-5
-                "
+                className="flex h-[65px] items-center justify-between border-b px-5"
                 style={{
                   borderColor: colors.border,
                 }}
@@ -619,15 +590,7 @@ const Profile = () => {
                     onBlur={handleFieldBlur}
                     onKeyDown={handleKeyDown}
                     readOnly={editingField !== "email"}
-                    className="
-                      w-[125px]
-                      rounded-[6px]
-                      px-2
-                      py-1
-                      text-right
-                      text-[11px]
-                      outline-none
-                    "
+                    className="w-[125px] rounded-[6px] px-2 py-1 text-right text-[11px] outline-none"
                     style={{
                       backgroundColor:
                         editingField === "email"
@@ -640,15 +603,7 @@ const Profile = () => {
                   <button
                     type="button"
                     onClick={() => handleEdit("email")}
-                    className="
-                      flex
-                      h-5
-                      w-5
-                      items-center
-                      justify-center
-                      rounded
-                      hover:bg-[#F5F5F5]
-                    "
+                    className="flex h-5 w-5 items-center justify-center rounded"
                   >
                     <RiPencilLine size={14} color={colors.text} />
                   </button>
@@ -656,14 +611,7 @@ const Profile = () => {
               </div>
 
               <div
-                className="
-                  flex
-                  h-[64px]
-                  items-center
-                  justify-between
-                  border-b
-                  px-5
-                "
+                className="flex h-[64px] items-center justify-between border-b px-5"
                 style={{
                   borderColor: colors.border,
                 }}
@@ -686,14 +634,7 @@ const Profile = () => {
                   onBlur={handleFieldBlur}
                   onKeyDown={handleKeyDown}
                   readOnly={editingField !== "name"}
-                  className="
-                    h-[30px]
-                    w-[152px]
-                    rounded-[6px]
-                    px-3
-                    text-[11px]
-                    outline-none
-                  "
+                  className="h-[30px] w-[152px] rounded-[6px] px-3 text-[11px] outline-none"
                   style={{
                     backgroundColor:
                       editingField === "name"
@@ -706,14 +647,7 @@ const Profile = () => {
               </div>
 
               <div
-                className="
-                  flex
-                  h-[69px]
-                  items-center
-                  justify-between
-                  border-b
-                  px-5
-                "
+                className="flex h-[69px] items-center justify-between border-b px-5"
                 style={{
                   borderColor: colors.border,
                 }}
@@ -729,10 +663,7 @@ const Profile = () => {
                   </p>
 
                   <p
-                    className="
-                      mt-[2px]
-                      text-[10px]
-                    "
+                    className="mt-[2px] text-[10px]"
                     style={{
                       color: colors.secondary,
                     }}
@@ -751,14 +682,7 @@ const Profile = () => {
                   onKeyDown={handleKeyDown}
                   readOnly={editingField !== "title"}
                   placeholder="Designer"
-                  className="
-                    h-[30px]
-                    w-[152px]
-                    rounded-[6px]
-                    px-3
-                    text-[11px]
-                    outline-none
-                  "
+                  className="h-[30px] w-[152px] rounded-[6px] px-3 text-[11px] outline-none"
                   style={{
                     backgroundColor:
                       editingField === "title"
@@ -769,15 +693,7 @@ const Profile = () => {
                 />
               </div>
 
-              <div
-                className="
-                  flex
-                  h-[84px]
-                  items-center
-                  justify-between
-                  px-5
-                "
-              >
+              <div className="flex h-[84px] items-center justify-between px-5">
                 <div className="min-w-0">
                   <p
                     className="text-[11px]"
@@ -789,10 +705,7 @@ const Profile = () => {
                   </p>
 
                   <p
-                    className="
-                      mt-[2px]
-                      text-[10px]
-                    "
+                    className="mt-[2px] text-[10px]"
                     style={{
                       color: colors.secondary,
                     }}
@@ -811,15 +724,7 @@ const Profile = () => {
                   onKeyDown={handleKeyDown}
                   readOnly={editingField !== "username"}
                   placeholder="Username"
-                  className="
-                    h-[30px]
-                    w-[152px]
-                    shrink-0
-                    rounded-[6px]
-                    px-3
-                    text-[11px]
-                    outline-none
-                  "
+                  className="h-[30px] w-[152px] shrink-0 rounded-[6px] px-3 text-[11px] outline-none"
                   style={{
                     backgroundColor:
                       editingField === "username"
@@ -832,12 +737,7 @@ const Profile = () => {
             </div>
 
             <h2
-              className="
-                mt-[40px]
-                text-[13px]
-                font-medium
-                leading-[18px]
-              "
+              className="mt-[40px] text-[13px] font-medium leading-[18px]"
               style={{
                 color: colors.text,
               }}
@@ -846,28 +746,13 @@ const Profile = () => {
             </h2>
 
             <div
-              className="
-                mt-[19px]
-                w-full
-                overflow-hidden
-                rounded-[8px]
-                border
-              "
+              className="mt-[19px] w-full overflow-hidden rounded-[8px] border"
               style={{
                 backgroundColor: colors.card,
                 borderColor: colors.border,
               }}
             >
-              <div
-                className="
-                  flex
-                  min-h-[69px]
-                  items-center
-                  justify-between
-                  gap-4
-                  px-5
-                "
-              >
+              <div className="flex min-h-[69px] items-center justify-between gap-4 px-5">
                 <span
                   className="text-[10px]"
                   style={{
@@ -880,27 +765,18 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={handleLeaveWorkspace}
-                  disabled={isLeavingWorkspace && !isGuestUser}
-                  className="
-                    shrink-0
-                    rounded-[6px]
-                    px-[10px]
-                    py-[7px]
-                    text-[10px]
-                    font-medium
-                    transition
-                  "
+                  disabled={
+                    !canLeaveWorkspace || (isLeavingWorkspace && !isGuestUser)
+                  }
+                  className="shrink-0 rounded-[6px] px-[10px] py-[7px] text-[10px] font-medium transition"
                   style={{
                     backgroundColor: canLeaveWorkspace
                       ? "#FFF0F0"
                       : isDark
                         ? "#303030"
                         : "#F1F1F1",
-
                     color: canLeaveWorkspace ? "#FF4D4D" : colors.secondary,
-
                     cursor: canLeaveWorkspace ? "pointer" : "not-allowed",
-
                     opacity: canLeaveWorkspace ? 1 : 0.5,
                   }}
                 >
@@ -913,10 +789,7 @@ const Profile = () => {
 
             {!isGuestUser && isWorkspaceLoading && (
               <p
-                className="
-                    mt-2
-                    text-[10px]
-                  "
+                className="mt-2 text-[10px]"
                 style={{
                   color: colors.secondary,
                 }}
