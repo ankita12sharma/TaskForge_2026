@@ -123,8 +123,6 @@ const loginUser = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-
     return res.status(500).json({
       responseCode: "500",
       responseMessage: "Server Error!!",
@@ -258,9 +256,6 @@ const updateUser = async (req, res) => {
       req.body;
 
     const { id } = req.params;
-
-    console.log("UPDATE USER ID:", id);
-    console.log("UPDATE USER BODY:", req.body);
 
     if (!id) {
       return res.status(400).json({
