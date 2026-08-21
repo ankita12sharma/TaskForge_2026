@@ -1,6 +1,6 @@
 # TaskForge – Task Management System
 
-TaskForge is a responsive task management application developed as part of the assessment task. The application is based on the provided Figma design and focuses on task organization, project management, workspace management, authentication, themes and responsive user experience.
+TaskForge is a responsive task management application developed as part of the assessment task. The application is based on the provided Figma design and focuses on task management, project and workspace management, authentication, theme customization and a responsive user experience.
 
 ## Live Demo
 
