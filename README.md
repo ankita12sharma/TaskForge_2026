@@ -4,13 +4,13 @@ TaskForge is a responsive task management application developed as part of the a
 
 ## Live Demo
 
-**Frontend:** Add your deployed frontend URL here
+**Frontend:** https://taskforge-frontend-g4qd.onrender.com
 
-**Backend API:** Add your deployed backend URL here
+**Backend API:** https://taskforge-2026.onrender.com
 
 ## GitHub Repository
 
-**GitHub:** Add your GitHub repository URL here
+**GitHub:** https://github.com/ankita12sharma/TaskForge_2026
 
 ---
 
@@ -140,7 +140,6 @@ TaskForge/
 ### Guest Login
 
 ![Guest Login](TaskForge_Images/GuestLogin.png)
-
 
 ### Projects
 
